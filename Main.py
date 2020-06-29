@@ -11,7 +11,7 @@ class Main:
         self.listen_for_commands()
 
     def listen_for_commands(self):
-        assistend_spoken = True
+        assistend_spoken = False
         while True:
             if not assistend_spoken:
                 self.voice.textToSpeech("Waiting for your command sir...")
