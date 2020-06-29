@@ -3,22 +3,22 @@ from gtts import gTTS
 import speech_recognition as sr
 from os import remove
 
-
 """
     @Creation data: 
     - 06/28/2020
     @Authors: 
     - Oste Jannick (Original interface (messy))
     - Gabriel Amara (Improved readabilty, Added comments) 
-"""
-class SpeechInterface:
-    """
+    @description:
         SpeechInterface provides two methods to respectively "convert" Audio <--> Text
         The instance of the class contains attribute to parameter how the conversion should be done
         listener : Recognizer object to handle Audio and Speech recognition
         phrase_time_limit : maximum number of seconds for the audio sample when listening
         speech_file_location : filepath of the temp ".mp3" file created to read out loud
-    """
+"""
+
+
+class SpeechInterface:
     def __init__(self, phrase_time_limit=5, speech_file_location="assets/speech.mp3"):
         self.listener: sr = sr.Recognizer()
         self.phrase_time_limit: float = phrase_time_limit
