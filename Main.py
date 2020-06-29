@@ -1,4 +1,4 @@
-from CommandHandler import CommandHandler
+from handlers import CommandHandler
 
 
 class Main:

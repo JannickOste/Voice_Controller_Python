@@ -1,0 +1,2 @@
+from handlers.VoiceHandler import SpeechInterface
+from handlers.CommandHandler import CommandHandler
