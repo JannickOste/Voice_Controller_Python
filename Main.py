@@ -1,8 +1,4 @@
-import random
-
 from CommandHandler import CommandHandler
-from VoiceHandler import VoiceHandler
-import difflib, requests, bs4
 
 
 class Main:
@@ -16,10 +12,10 @@ class Main:
 
         while True:
             if not assistend_spoken:
-                self.command_handler.voiceh.textToSpeech("Waiting for your command sir...")
+                self.command_handler.voiceh.speak("Waiting for your command sir...")
                 assistend_spoken = True
 
-            text: str = self.command_handler.voiceh.listenForSpeech()
+            text: str = self.command_handler.voiceh.listen()
             if text:
                 listed_text = [text] if not " " in text else text.split()
                 parsed_command = None
@@ -43,7 +39,7 @@ class Main:
 
                 if parsed_command: # if command was valid, run with(out) arguments
                     if parsed_command != "commands":
-                        self.command_handler.voiceh.textToSpeech("Command %s has been found, executing command" % parsed_command.replace("_", " "))
+                        self.command_handler.voiceh.speak("Command %s has been found, executing command" % parsed_command.replace("_", " "))
 
                     command = getattr(self.command_handler, parsed_command)
 
@@ -55,7 +51,7 @@ class Main:
                     assistend_spoken = False
                 else:
                     print(text)
-                    self.command_handler.voiceh.textToSpeech("Could not find the command %s" % text)
+                    self.command_handler.voiceh.speak("Could not find the command %s" % text)
 
 
 if __name__ == "__main__":

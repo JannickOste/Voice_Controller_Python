@@ -4,32 +4,52 @@ import speech_recognition as sr
 from os import remove
 
 
-class VoiceHandler:
-    # Listen for microphone audio.
-    def listenForSpeech(self) -> str:
-        listener: sr = sr.Recognizer()
-        parsed_audio = ""
+"""
+    @Creation data: 
+    - 06/28/2020
+    @Authors: 
+    - Oste Jannick (Original interface (messy))
+    - Gabriel Amara (Improved readabilty, Added comments) 
+"""
+class SpeechInterface:
+    """
+        SpeechInterface provides two methods to respectively "convert" Audio <--> Text
+        The instance of the class contains attribute to parameter how the conversion should be done
+        listener : Recognizer object to handle Audio and Speech recognition
+        phrase_time_limit : maximum number of seconds for the audio sample when listening
+        speech_file_location : filepath of the temp ".mp3" file created to read out loud
+    """
+    def __init__(self, phrase_time_limit=5, speech_file_location="assets/speech.mp3"):
+        self.listener: sr = sr.Recognizer()
+        self.phrase_time_limit: float = phrase_time_limit
+        self.speech_file_location: str = speech_file_location
+
+    def listen(self) -> str:
+        """
+        This method listen to the user microphone and map the audio input to a corresponding text output
+        :return: Text extracted from the user's record
+        """
 
         print("Listening for audio input")
+
         with sr.Microphone() as microphone:
-            parsed_audio = listener.listen(microphone, phrase_time_limit=5)
+            parsed_audio = self.listener.listen(microphone, phrase_time_limit=self.phrase_time_limit)
 
         try:
-            text: str = listener.recognize_google(parsed_audio)
-            return text
+            return self.listener.recognize_google(parsed_audio)
         except Exception as e:
-            print("Unable to parse micrphone audio")
+            print("Unable to parse microphone audio")
             return ""
 
-    # Text to speech
-    def textToSpeech(self, text_output: str) -> None:
-        speech_file_location = "assets/speech.mp3"
-        speech = gTTS(text=text_output, lang="en", slow=False)
-        speech.save(speech_file_location)
-        playsound(speech_file_location)
-        remove(speech_file_location)
+    def speak(self, text: str) -> None:
+        """
+        This method reads the given text out loud
+        :param text: The text to read
+        :return: None
+        TODO ? may add some ``status: bool`` return value to handle possible errors (True -> ok, False -> error)
+        """
 
-
-if __name__ == "__main__":
-    print("VoiceHandler isnt an executable class, run program from Main.py")
-    exit(0)
+        speech = gTTS(text=text, lang="en", slow=False)
+        speech.save(self.speech_file_location)
+        playsound(self.speech_file_location)
+        remove(self.speech_file_location)

@@ -1,16 +1,13 @@
-import bs4
-import os, random, pyautogui, time, httplib2, requests
-import spotipy, difflib
+import bs4, random, time, httplib2, requests, spotipy
 from spotipy import SpotifyClientCredentials
 
 from Misc import Misc
-from VoiceHandler import VoiceHandler
-import pygetwindow
+from VoiceHandler import SpeechInterface
 
 
 class CommandHandler:
     def __init__(self):
-        self.voiceh = VoiceHandler()
+        self.voiceh = SpeechInterface()
         self.misc = Misc()
 
     """ Software shortcuts """
@@ -37,7 +34,7 @@ class CommandHandler:
 
             # Open firefox with parsed url if a valid site has been found
             self.misc.open_program(directory=firefox_root, executable="firefox.exe %s" % parsed_url) if parsed_url else\
-                self.voiceh.textToSpeech("Unable to find correct url.")
+                self.voiceh.speak("Unable to find correct url.")
 
     def open_partitions(self): self.misc.open_program("diskmgmt.msc")
 
@@ -56,26 +53,33 @@ class CommandHandler:
 
     """ Software Control """
     def play_music(self, play=True):
-        self.stop_music()
-        self.misc.open_program(executable="spotify.exe")
+        if self.misc.window_exists("spotify"):
+            self.misc.focus_window("spotify")
+        else:
+            self.misc.open_program(executable="spotify.exe")
+
         time.sleep(5)
-        self.misc.search_screen(image="assets/images/spotify_play.png", click_center=True)
+        if play:
+            self.misc.search_screen(image="assets/images/spotify_play.png", click_center=True)
 
 
     def next_song(self):
-        window = pygetwindow.getWindowsWithTitle("spotify")
-        if window:
-            window[0].activate()
-            time.sleep(1)
-            self.misc.search_screen(image="assets/images/next_song.png", click_center=True)
+        if self.misc.window_exists("spotify"):
+            self.misc.focus_window("spotify")
+        else:
+            self.play_music(play=False)
 
+        time.sleep(1)
+        self.misc.search_screen(image="assets/images/next_song.png", click_center=True)
 
     def previous_song(self):
-        window = pygetwindow.getWindowsWithTitle("spotify")
-        if window:
-            window[0].activate()
-            time.sleep(1)
-            self.misc.search_screen(image="assets/images/previous_song.png", click_center=True)
+        if self.misc.window_exists("spotify"):
+            self.misc.focus_window("spotify")
+        else:
+            self.play_music(play=False)
+
+        time.sleep(1)
+        self.misc.search_screen(image="assets/images/previous_song.png", click_center=True)
 
     def stop_music(self): self.misc.open_program("taskkill /f /im spotify.exe")
 
@@ -103,14 +107,12 @@ class CommandHandler:
         if client_id and client_secret:
             songs = search_track(args[0])
             self.misc.open_program("start {}".format(songs.get(list(songs.keys())[0])))
-            window = pygetwindow.getWindowsWithTitle("spotify")
-            window[0].activate()
+            self.misc.focus_window("spotify")
             time.sleep(0.5)
             self.misc.search_screen(image="assets/images/highlighted_song.png", click_center=True)
-
         else: # Otherwise give the url to create a developer application.
-            self.voiceh.textToSpeech("No developer application set, please follow the guide on the logged link in terminal")
-            self.voiceh.textToSpeech("Afterwards set the client id/secret in play song function")
+            self.voiceh.speak("No developer application set, please follow the guide on the logged link in terminal")
+            self.voiceh.speak("Afterwards set the client id/secret in play song function")
             print("https://developer.spotify.com/documentation/general/guides/app-settings/?fbclid=IwAR1xHP62ZxxsI2GqAibc0tE5EPEUv0_G_uAkPoMQODtJz_il8tEsJbX5P0c#register-your-app")
 
     """ Miscellaneous """
@@ -120,8 +122,8 @@ class CommandHandler:
         url = "https://official-joke-api.appspot.com/random_ten"
         url_response = eval(requests.get(url).text)
         random_joke = random.choice(url_response)
-        self.voiceh.textToSpeech(random_joke["setup"])
-        self.voiceh.textToSpeech(random_joke["punchline"])
+        self.voiceh.speak(random_joke["setup"])
+        self.voiceh.speak(random_joke["punchline"])
 
     def movie_suggestion(self, *args, **kwargs):
         def scrape_movie_list(genre):
@@ -161,18 +163,18 @@ class CommandHandler:
 
             # Select a random movie from dictionairy
             random_movie = random.choice(list(movies.keys()))
-            self.voiceh.textToSpeech(random_movie)
-            self.voiceh.textToSpeech(movies[random_movie])
+            self.voiceh.speak(random_movie)
+            self.voiceh.speak(movies[random_movie])
 
             # Print in terminal if something wasnt audible given the option to read it:
             print("Name: %s\nDescription: %s" % (random_movie, movies[random_movie]))
             time.sleep(1) # Add sleep otherwise, command question was to fast / unatural.
 
     def commands(self):
-        self.voiceh.textToSpeech("Voice commands are: ")
+        self.voiceh.speak("Voice commands are: ")
         for i in [k for k in list(self.__class__.__dict__.keys()) if "__" not in k]:
             i = i if not "_" in i else i.replace("_", " ")
-            self.voiceh.textToSpeech(i)
+            self.voiceh.speak(i)
 
 
 if __name__ == "__main__":

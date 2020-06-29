@@ -1,5 +1,6 @@
 import difflib, os
 import pyautogui
+import pygetwindow
 
 
 class Misc:
@@ -28,3 +29,10 @@ class Misc:
                             int(search_location.top + (search_location.height / 2)))
         else:
             return search_location
+
+    def focus_window(self, window_name: str):
+        window = pygetwindow.getWindowsWithTitle(window_name)
+        if window:
+            window[0].activate()
+
+    def window_exists(self, window_name: str): return True if len(pygetwindow.getWindowsWithTitle(window_name)) else False
