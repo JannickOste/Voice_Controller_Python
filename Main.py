@@ -7,7 +7,6 @@ import difflib, requests, bs4
 
 class Main:
     def __init__(self):
-        self.voice = VoiceHandler()
         self.command_handler = CommandHandler()
         self.commands = [k for k in list(self.command_handler.__class__.__dict__.keys()) if "__" not in k]
         self.listen_for_commands()
@@ -17,10 +16,10 @@ class Main:
 
         while True:
             if not assistend_spoken:
-                self.voice.textToSpeech("Waiting for your command sir...")
+                self.command_handler.voiceh.textToSpeech("Waiting for your command sir...")
                 assistend_spoken = True
 
-            text: str = self.voice.listenForSpeech()
+            text: str = self.command_handler.voiceh.listenForSpeech()
             if text:
                 listed_text = [text] if not " " in text else text.split()
                 parsed_command = None
@@ -37,18 +36,14 @@ class Main:
                 elif "_".join(listed_text) in self.commands:
                     parsed_command = "_".join(listed_text)
                 else:
-                    # Search a command with more as 75% similarity
-                    for command in self.commands:
-                        # compare text to each command and calculate the similairity between the strings
-                        sequence = difflib.SequenceMatcher(isjunk=None, a=text, b=command)
-                        diffrence = round(sequence.ratio() * 100, 1)  # *100 due being stored in fractions.
-                        if diffrence >= 75:
-                            parsed_command = command
-                            break
+                    # Search for a command with 75% similarity
+                    search = self.command_handler.misc.stringset_comparer(text, self.commands)
+                    if search:
+                        parsed_command = search
 
                 if parsed_command: # if command was valid, run with(out) arguments
                     if parsed_command != "commands":
-                        self.voice.textToSpeech("Command %s has been found, executing command" % parsed_command.replace("_", " "))
+                        self.command_handler.voiceh.textToSpeech("Command %s has been found, executing command" % parsed_command.replace("_", " "))
 
                     command = getattr(self.command_handler, parsed_command)
 
@@ -60,7 +55,7 @@ class Main:
                     assistend_spoken = False
                 else:
                     print(text)
-                    self.voice.textToSpeech("Could not find the command %s" % text)
+                    self.command_handler.voiceh.textToSpeech("Could not find the command %s" % text)
 
 
 if __name__ == "__main__":
