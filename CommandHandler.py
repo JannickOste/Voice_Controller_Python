@@ -1,4 +1,6 @@
 import os, random, pyautogui, time, httplib2, requests
+import spotipy
+from spotipy import SpotifyClientCredentials
 
 from VoiceHandler import VoiceHandler
 import pygetwindow
@@ -6,13 +8,6 @@ import pygetwindow
 class CommandHandler:
     def __init__(self):
         self.voiceh = VoiceHandler()
-
-    def commands(self):
-        self.voiceh.textToSpeech("Voice commands are: ")
-        for i in [k for k in list(self.__class__.__dict__.keys()) if "__" not in k]:
-            i = i if not "_" in i else i.replace("_", " ")
-            self.voiceh.textToSpeech(i)
-            print("- %s" % i)
 
     """ Software shortcuts """
     def open_firefox(self, *args, **kwargs):
@@ -40,6 +35,22 @@ class CommandHandler:
             else:
                 self.voiceh.textToSpeech("Unable to find correct url.")
 
+    def open_partitions(self): os.system("diskmgmt.msc")
+
+    def open_notepad(self): os.system("notepad.exe")
+
+    def open_calculator(self): os.system("calc")
+
+    def open_terminal(self): os.system("start cmd.exe")
+
+    """ Power control """
+    def sleep(self): os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
+
+    def shutdown(self): os.system("shutdown.exe -s -t 0")
+
+    def restart(self): os.system("shutdown -r -t 5")
+
+    """ Software Control """
     def play_music(self, play=True):
         self.stop_music()
         os.system("spotify.exe")
@@ -70,21 +81,35 @@ class CommandHandler:
 
     def stop_music(self): os.system("taskkill /f /im spotify.exe")
 
-    def open_partitions(self): os.system("diskmgmt.msc")
+    def play_song(self, *args, **kwargs):
+        client_id = ""
+        client_secret = ""
 
-    def open_notepad(self): os.system("notepad.exe")
+        def connect_to_spotify():
+            client_credentials_manager = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
+            sp = spotipy.Spotify(
+                client_credentials_manager=client_credentials_manager)
+            return sp
 
-    def open_calculator(self): os.system("calc")
+        def search_track(search_query: str):
+            conn = connect_to_spotify()
+            result = conn.search(search_query, type="track")
+            found_songs = {}
+            for set in result["tracks"]["items"]:
+                found_songs[set["name"].lower()] = set["uri"]
+            return found_songs
 
-    def open_terminal(self): os.system("start cmd.exe")
+        if client_id and client_secret:
+            songs = search_track(args[0])
+            os.system("start {}".format(songs.get(list(songs.keys())[0])))
+            window = pygetwindow.getWindowsWithTitle("spotify")
+            window[0].activate()
+            time.sleep(0.5)
+            loc = pyautogui.locateOnScreen("assets/images/highlighted_song.png", confidence=.9)
+            if loc:
+                pyautogui.click(loc.left, int(loc.top+(loc.height/2)), clicks=2)
 
-    """ Power control """
-    def sleep(self): os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-
-    def shutdown(self): os.system("shutdown.exe -s -t 0")
-
-    def restart(self): os.system("shutdown -r -t 5")
-
+    """ Miscellaneous """
     def tell_me_a_joke(self):
         print("Telling a joke")
         # Fetch jokes from API
@@ -94,6 +119,11 @@ class CommandHandler:
         self.voiceh.textToSpeech(random_joke["setup"])
         self.voiceh.textToSpeech(random_joke["punchline"])
 
+    def commands(self):
+        self.voiceh.textToSpeech("Voice commands are: ")
+        for i in [k for k in list(self.__class__.__dict__.keys()) if "__" not in k]:
+            i = i if not "_" in i else i.replace("_", " ")
+            self.voiceh.textToSpeech(i)
 
 if __name__ == "__main__":
     print("CommandHandler isnt an executable class, run program from Main.py")

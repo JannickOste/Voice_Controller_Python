@@ -1,6 +1,6 @@
 from CommandHandler import CommandHandler
 from VoiceHandler import VoiceHandler
-import difflib, pygetwindow
+import difflib
 
 
 class Main:
@@ -11,8 +11,7 @@ class Main:
         self.listen_for_commands()
 
     def listen_for_commands(self):
-        assistend_spoken = False
-
+        assistend_spoken = True
         while True:
             if not assistend_spoken:
                 self.voice.textToSpeech("Waiting for your command sir...")
@@ -35,7 +34,7 @@ class Main:
                 elif "_".join(listed_text) in self.commands:
                     parsed_command = "_".join(listed_text)
                 else:
-                    # Search a command with more as 75% similairity
+                    # Search a command with more as 75% similarity
                     for command in self.commands:
                         # compare text to each command and calculate the similairity between the strings
                         sequence = difflib.SequenceMatcher(isjunk=None, a=text, b=command)
