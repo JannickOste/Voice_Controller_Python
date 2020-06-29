@@ -1,9 +1,11 @@
+import bs4
 import os, random, pyautogui, time, httplib2, requests
-import spotipy
+import spotipy, difflib
 from spotipy import SpotifyClientCredentials
 
 from VoiceHandler import VoiceHandler
 import pygetwindow
+
 
 class CommandHandler:
     def __init__(self):
@@ -108,6 +110,10 @@ class CommandHandler:
             loc = pyautogui.locateOnScreen("assets/images/highlighted_song.png", confidence=.9)
             if loc:
                 pyautogui.click(loc.left, int(loc.top+(loc.height/2)), clicks=2)
+        else:
+            self.voiceh.textToSpeech("No developer application set, please follow the guide on the logged link in terminal")
+            self.voiceh.textToSpeech("Afterwards set the client id/secret in play song function")
+            print("https://developer.spotify.com/documentation/general/guides/app-settings/?fbclid=IwAR1xHP62ZxxsI2GqAibc0tE5EPEUv0_G_uAkPoMQODtJz_il8tEsJbX5P0c#register-your-app")
 
     """ Miscellaneous """
     def tell_me_a_joke(self):
@@ -118,6 +124,42 @@ class CommandHandler:
         random_joke = random.choice(url_response)
         self.voiceh.textToSpeech(random_joke["setup"])
         self.voiceh.textToSpeech(random_joke["punchline"])
+
+    def movie_suggestion(self, *args, **kwargs):
+        genre = ["horror", "action", "sci-fi", "thriller", "crime", "mystery"]
+        if args:
+            highest_ratio = 0
+            genre_name = ""
+            for i in genre:
+                search_correct = difflib.SequenceMatcher(isjunk=None, a=args[0], b=i)
+                current_ratio = search_correct.ratio()*100
+                if current_ratio > highest_ratio:
+                    highest_ratio = current_ratio
+                    genre_name = i
+            genre = genre_name
+        else:
+            genre = random.choice(genre)
+
+        page = requests.get("https://www.imdb.com/search/title/?genres={genre}".format(genre=genre))
+        soupobj = bs4.BeautifulSoup(page.text, features="html.parser")
+        raw_movie_list = soupobj.find_all("div", class_="lister-item-content")
+        movies = {}
+        for movie in raw_movie_list:
+            subsoup = bs4.BeautifulSoup(str(movie), features="html.parser")
+            # scrape title out of code.
+            title = [i for i in subsoup.find_all("a") if "title/tt" in str(i) and not "vote" in str(i)][0]
+            title = str(title)[str(title).find('">')+2:str(title).find('</')]
+            for indx, i in enumerate(subsoup.find_all("p", class_="text-muted")):
+                if indx != 1:
+                    continue
+                description = str(i)[str(i).find("\n")+1:str(i).find("</p")].strip()
+                movies[title] = description
+
+        random_movie = random.choice(list(movies.keys()))
+        self.voiceh.textToSpeech(random_movie)
+        self.voiceh.textToSpeech(movies[random_movie])
+        print("name: %s\nDescription: %s" % (random_movie, movies[random_movie]))
+        time.sleep(1)
 
     def commands(self):
         self.voiceh.textToSpeech("Voice commands are: ")

@@ -1,6 +1,8 @@
+import random
+
 from CommandHandler import CommandHandler
 from VoiceHandler import VoiceHandler
-import difflib
+import difflib, requests, bs4
 
 
 class Main:
@@ -12,6 +14,7 @@ class Main:
 
     def listen_for_commands(self):
         assistend_spoken = False
+
         while True:
             if not assistend_spoken:
                 self.voice.textToSpeech("Waiting for your command sir...")
